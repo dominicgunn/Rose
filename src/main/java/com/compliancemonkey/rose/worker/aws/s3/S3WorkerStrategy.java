@@ -8,6 +8,7 @@ import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
 import com.compliancemonkey.rose.worker.ServiceWorkerStrategy;
+import com.compliancemonkey.rose.worker.aws.AwsService;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +27,18 @@ import software.amazon.awssdk.services.s3.model.Tag;
 @Component
 public class S3WorkerStrategy implements ServiceWorkerStrategy {
 
-	private ApplicationEventPublisher eventPublisher;
-	private AccountService accountService;
+	private AwsService awsService;
 	private AuditService auditService;
+	private AccountService accountService;
+	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public S3WorkerStrategy(ApplicationEventPublisher eventPublisher, AccountService accountService, AuditService auditService) {
-		this.eventPublisher = eventPublisher;
-		this.accountService = accountService;
+	public S3WorkerStrategy(AwsService awsService, AuditService auditService, AccountService accountService,
+							ApplicationEventPublisher eventPublisher) {
+		this.awsService = awsService;
 		this.auditService = auditService;
+		this.accountService = accountService;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -53,16 +57,13 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 
 		eventPublisher.publishEvent(new AuditUpdateEvent(auditId, Status.IN_PROGRESS));
 
-		final S3Client s3Client = S3Client.builder()
-				.region(Region.US_WEST_1)
-				.credentialsProvider(awsCredentialsProvider).build();
+		final S3Client s3Client = awsService.buildS3Client(awsCredentialsProvider);
 
 		final List<String> bucketsInCompliance = new ArrayList<>();
 		final List<String> bucketsOutOfCompliance = new ArrayList<>();
 
-		final ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
 		try {
-			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets(listBucketsRequest);
+			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
 			listBucketsResponse.buckets().forEach(x -> {
 				final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(x.name()).build();
 				try {

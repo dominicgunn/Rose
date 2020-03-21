@@ -16,6 +16,7 @@ configurations {
 }
 
 repositories {
+	jcenter()
 	mavenCentral()
 	maven { url 'https://repo.spring.io/milestone' }
 }
@@ -26,6 +27,8 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	testImplementation "org.mockito:mockito-core:2.+"
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
