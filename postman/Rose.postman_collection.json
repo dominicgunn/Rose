@@ -1,0 +1,56 @@
+{
+	"info": {
+		"_postman_id": "303a7333-ae4e-4bca-a562-e5b0714607d4",
+		"name": "Rose",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Audit",
+			"item": [
+				{
+					"name": "Create Audit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{Host}}/audit/{{$randomBankAccount}}/service/{{awsService}}",
+							"protocol": "http",
+							"host": [
+								"{{Host}}"
+							],
+							"path": [
+								"audit",
+								"{{$randomBankAccount}}",
+								"service",
+								"{{awsService}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Audit",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{Host}}/audit/{{auditId}}",
+							"protocol": "http",
+							"host": [
+								"{{Host}}"
+							],
+							"path": [
+								"audit",
+								"{{auditId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
