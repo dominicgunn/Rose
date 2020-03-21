@@ -21,6 +21,9 @@ repositories {
 }
 
 dependencies {
+	implementation platform('software.amazon.awssdk:bom:2.10.91')
+	implementation 'software.amazon.awssdk:s3'
+
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {

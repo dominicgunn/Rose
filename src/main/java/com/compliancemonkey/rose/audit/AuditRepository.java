@@ -2,12 +2,13 @@ package com.compliancemonkey.rose.audit;
 
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
+import com.compliancemonkey.rose.audit.models.AuditReport;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class AuditRepository {
 
 	private AtomicInteger auditIdGenerator = new AtomicInteger();
@@ -20,10 +21,13 @@ public class AuditRepository {
 		return audit;
 	}
 
-	public Audit update(int auditId, Audit.Status status) {
+	public Audit update(int auditId, Audit.Status status, AuditReport auditReport) {
 		final Audit audit = auditMap.get(auditId);
 		if (audit != null) {
 			audit.setStatus(status);
+			if (auditReport != null) {
+				audit.setAuditReport(auditReport);
+			}
 			auditMap.put(audit.getAuditId(), audit);
 		}
 		return audit;

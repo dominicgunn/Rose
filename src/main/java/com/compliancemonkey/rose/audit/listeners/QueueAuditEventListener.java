@@ -24,7 +24,8 @@ public class QueueAuditEventListener {
 
 	@Async
 	@EventListener
-	public void handleEvent(QueueAuditEvent queueAuditEvent) {
+	public void handleEvent(QueueAuditEvent queueAuditEvent) throws InterruptedException {
+		Thread.sleep(2500);
 		final Audit audit = auditService.getAudit(queueAuditEvent.getAuditId());
 		auditService.updateAuditStatus(audit.getAuditId(), Status.QUEUED);
 		serviceWorker.execute(queueAuditEvent.getAuditId(), audit.getCloudService());

@@ -14,6 +14,7 @@ public class Audit {
 	private final int accountId;
 	private final CloudService cloudService;
 	private Status status = Status.NOT_STARTED;
+	private AuditReport auditReport;
 
 	public Audit(int auditId, int accountId, CloudService cloudService) {
 		this.auditId = auditId;
@@ -39,5 +40,13 @@ public class Audit {
 
 	public void setStatus(Status status) {
 		this.status = status;
+	}
+
+	public AuditReport getAuditReport() {
+		return auditReport;
+	}
+
+	public void setAuditReport(AuditReport auditReport) {
+		this.auditReport = auditReport;
 	}
 }

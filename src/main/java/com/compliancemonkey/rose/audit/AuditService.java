@@ -1,10 +1,10 @@
 package com.compliancemonkey.rose.audit;
 
-import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.events.QueueAuditEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
+import com.compliancemonkey.rose.audit.models.AuditReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,11 @@ public class AuditService {
 	}
 
 	public Audit updateAuditStatus(int auditId, Status auditStatus) {
-		return auditRepository.update(auditId, auditStatus);
+		return updateAuditStatus(auditId, auditStatus, null);
+	}
+
+	public Audit updateAuditStatus(int auditId, Status auditStatus, AuditReport auditReport) {
+		return auditRepository.update(auditId, auditStatus, auditReport);
 	}
 
 	public Audit getAudit(int auditId) {
