@@ -1,5 +1,6 @@
 package com.compliancemonkey.rose.audit;
 
+import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.events.QueueAuditEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
@@ -11,11 +12,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuditService {
 
-	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+	private AuditRepository auditRepository;
 
 	@Autowired
-	private AuditRepository auditRepository;
+	public AuditService(ApplicationEventPublisher eventPublisher, AuditRepository auditRepository) {
+		this.eventPublisher = eventPublisher;
+		this.auditRepository = auditRepository;
+	}
 
 	public Audit createAudit(int accountId, CloudService auditCloudService) {
 		final Audit audit = auditRepository.save(accountId, auditCloudService);

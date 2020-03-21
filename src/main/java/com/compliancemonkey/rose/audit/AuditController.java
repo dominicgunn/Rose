@@ -12,8 +12,12 @@ import reactor.core.publisher.Mono;
 @RestController
 public class AuditController {
 
-	@Autowired
 	private AuditService auditService;
+
+	@Autowired
+	public AuditController(AuditService auditService) {
+		this.auditService = auditService;
+	}
 
 	@GetMapping("/audit/{auditId}")
 	public Mono<Audit> getAuditForService(@PathVariable("auditId") int auditId) {
