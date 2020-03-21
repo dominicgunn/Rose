@@ -61,29 +61,35 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 		final List<String> bucketsOutOfCompliance = new ArrayList<>();
 
 		final ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-		final ListBucketsResponse listBucketsResponse = s3Client.listBuckets(listBucketsRequest);
-		listBucketsResponse.buckets().forEach(x -> {
-			final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(x.name()).build();
-			try {
-				final GetBucketTaggingResponse bucketTaggingResponse = s3Client.getBucketTagging(bucketTaggingRequest);
+		try {
+			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets(listBucketsRequest);
+			listBucketsResponse.buckets().forEach(x -> {
+				final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(x.name()).build();
+				try {
+					final GetBucketTaggingResponse bucketTaggingResponse = s3Client.getBucketTagging(bucketTaggingRequest);
 
-				boolean inCompliance = false;
-				for (Tag tag : bucketTaggingResponse.tagSet()) {
-					if ("Team".equalsIgnoreCase(tag.key())) {
-						inCompliance = true;
-						break;
+					boolean inCompliance = false;
+					for (Tag tag : bucketTaggingResponse.tagSet()) {
+						if ("Team".equalsIgnoreCase(tag.key())) {
+							inCompliance = true;
+							break;
+						}
 					}
-				}
 
-				if (inCompliance) {
-					bucketsInCompliance.add(x.name());
-				} else {
+					if (inCompliance) {
+						bucketsInCompliance.add(x.name());
+					} else {
+						bucketsOutOfCompliance.add(x.name());
+					}
+				} catch (S3Exception s3exception) {
 					bucketsOutOfCompliance.add(x.name());
 				}
-			} catch (S3Exception s3exception) {
-				bucketsOutOfCompliance.add(x.name());
-			}
-		});
+			});
+		} catch (S3Exception ex) {
+			// AWS Credentials Invalid
+			eventPublisher.publishEvent(new AuditUpdateEvent(auditId, Status.FAILED));
+			return;
+		}
 
 		eventPublisher.publishEvent(new AuditCompleteEvent(auditId, new S3AuditReport(bucketsInCompliance, bucketsOutOfCompliance)));
 	}

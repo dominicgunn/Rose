@@ -1,5 +1,7 @@
 package com.compliancemonkey.rose.audit.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class Audit {
 
 	public enum Status {
