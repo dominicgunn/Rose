@@ -1,4 +1,4 @@
-package com.compliancemonkey.rose.worker.aws.s3;
+package com.compliancemonkey.rose.worker.strategies.aws.s3;
 
 import com.compliancemonkey.rose.audit.models.AuditReport;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,4 +1,4 @@
-package com.compliancemonkey.rose.worker.aws;
+package com.compliancemonkey.rose.worker.strategies.aws;
 
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;

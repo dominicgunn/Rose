@@ -1,4 +1,4 @@
-package com.compliancemonkey.rose.worker.aws;
+package com.compliancemonkey.rose.worker.strategies.aws;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -11,7 +11,7 @@ import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
 import com.compliancemonkey.rose.audit.models.AuditReport;
-import com.compliancemonkey.rose.worker.aws.s3.S3WorkerStrategy;
+import com.compliancemonkey.rose.worker.strategies.aws.s3.S3WorkerStrategy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
