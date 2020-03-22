@@ -9,12 +9,12 @@
 			"name": "Audit",
 			"item": [
 				{
-					"name": "Create Audit",
+					"name": "Create S3 Audit",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://{{Host}}/audit/{{$randomBankAccount}}/service/{{awsService}}",
+							"raw": "http://{{Host}}/audit/{{$randomBankAccount}}/service/AWS_S3",
 							"protocol": "http",
 							"host": [
 								"{{Host}}"
@@ -23,7 +23,28 @@
 								"audit",
 								"{{$randomBankAccount}}",
 								"service",
-								"{{awsService}}"
+								"AWS_S3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create EC2 Audit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{Host}}/audit/{{$randomBankAccount}}/service/AWS_EC2",
+							"protocol": "http",
+							"host": [
+								"{{Host}}"
+							],
+							"path": [
+								"audit",
+								"{{$randomBankAccount}}",
+								"service",
+								"AWS_EC2"
 							]
 						}
 					},

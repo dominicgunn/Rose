@@ -60,7 +60,7 @@ public class S3EncryptionComplianceStrategyTest {
 				.build();
 
 		Mockito.lenient().when(s3Client.getBucketEncryption(getBucketEncryptionRequestArgumentCaptor.capture())).thenReturn(encryptionResponse);
-		s3EncryptionComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		s3EncryptionComplianceStrategy.execute(s3Client, BUCKET_NAME, null, complianceReport);
 
 		assertTrue(complianceReport.isCompliant());
 
@@ -78,7 +78,7 @@ public class S3EncryptionComplianceStrategyTest {
 				.build();
 
 		Mockito.lenient().when(s3Client.getBucketEncryption(getBucketEncryptionRequestArgumentCaptor.capture())).thenReturn(encryptionResponse);
-		s3EncryptionComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		s3EncryptionComplianceStrategy.execute(s3Client, BUCKET_NAME, null, complianceReport);
 
 		assertFalse(complianceReport.isCompliant());
 

@@ -5,9 +5,9 @@ import com.compliancemonkey.rose.audit.models.Audit.ComplianceStrategyIdentifier
 import com.compliancemonkey.rose.audit.models.ComplianceReport;
 import software.amazon.awssdk.core.SdkClient;
 
-public interface ComplianceStrategy {
+public interface ComplianceStrategy<T> {
 
 	boolean supportsService(CloudService cloudService);
 	ComplianceStrategyIdentifier complianceIdentifier();
-	void execute(SdkClient sdkClient, String entityIdentifier, ComplianceReport complianceReport);
+	void execute(SdkClient sdkClient, String entityIdentifier, T Entity, ComplianceReport complianceReport);
 }

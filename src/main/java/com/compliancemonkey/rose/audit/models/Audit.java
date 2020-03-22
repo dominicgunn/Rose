@@ -11,7 +11,8 @@ public class Audit {
 	}
 
 	public enum ComplianceStrategyIdentifier {
-		AWS_S3_TAGS, AWS_S3_ENCRYPTION, AWS_S3_ACL
+		AWS_S3_TAGS, AWS_S3_ENCRYPTION, AWS_S3_ACL,
+		AWS_EC2_TAGS,
 	}
 
 	private final int auditId;

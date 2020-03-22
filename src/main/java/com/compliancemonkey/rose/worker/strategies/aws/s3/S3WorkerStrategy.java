@@ -18,11 +18,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
-public class S3WorkerStrategy implements ServiceWorkerStrategy {
+public class S3WorkerStrategy implements ServiceWorkerStrategy<Bucket> {
 
 	private AwsService awsService;
 	private AccountService accountService;
@@ -36,7 +37,7 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 	}
 
 	@Override
-	public void execute(Audit audit, List<ComplianceStrategy> complianceStrategies) {
+	public void execute(Audit audit, List<ComplianceStrategy<Bucket>> complianceStrategies) {
 		final StaticCredentialsProvider awsCredentialsProvider = accountService.getAwsCredentialsProvider(audit.getAccountId());
 		if (awsCredentialsProvider == null) {
 			eventPublisher.publishEvent(new AuditUpdateEvent(audit.getAuditId(), Status.FAILED));
@@ -52,8 +53,8 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
 			listBucketsResponse.buckets().forEach(x -> {
 				final ComplianceReport complianceReport = new ComplianceReport(x.name());
-				for (ComplianceStrategy complianceStrategy : complianceStrategies) {
-					complianceStrategy.execute(s3Client, x.name(), complianceReport);
+				for (ComplianceStrategy<Bucket> complianceStrategy : complianceStrategies) {
+					complianceStrategy.execute(s3Client, x.name(), x, complianceReport);
 				}
 				complianceReports.add(complianceReport);
 			});
@@ -68,6 +69,6 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 
 	@Override
 	public boolean supportsService(CloudService cloudService) {
-		return cloudService == CloudService.AWS_S3;
+		return CloudService.AWS_S3.equals(cloudService);
 	}
 }

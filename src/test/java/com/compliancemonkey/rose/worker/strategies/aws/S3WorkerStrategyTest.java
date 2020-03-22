@@ -1,6 +1,5 @@
 package com.compliancemonkey.rose.worker.strategies.aws;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.compliancemonkey.rose.account.AccountService;
@@ -60,7 +59,7 @@ public class S3WorkerStrategyTest {
 	private S3WorkerStrategy s3WorkerStrategy;
 
 	private Audit audit;
-	private List<ComplianceStrategy> complianceStrategyList;
+	private List<ComplianceStrategy<Bucket>> complianceStrategyList;
 
 	private Bucket bucket;
 	private S3Client s3Client;
@@ -98,9 +97,9 @@ public class S3WorkerStrategyTest {
 	public void testStrategyIsExecuted() {
 		s3WorkerStrategy.execute(audit, complianceStrategyList);
 
-		for (ComplianceStrategy complianceStrategy : complianceStrategyList) {
+		for (ComplianceStrategy<Bucket> complianceStrategy : complianceStrategyList) {
 			Mockito.verify(complianceStrategy, Mockito.times(1))
-					.execute(Mockito.eq(s3Client), Mockito.eq(BUCKET_NAME), Mockito.any(ComplianceReport.class));
+					.execute(Mockito.eq(s3Client), Mockito.eq(BUCKET_NAME), Mockito.eq(bucket), Mockito.any(ComplianceReport.class));
 		}
 
 		Mockito.verify(eventPublisher, Mockito.times(2)).publishEvent(auditUpdateEventArgumentCaptor.capture());

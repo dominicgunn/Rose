@@ -54,7 +54,7 @@ public class S3AclComplianceStrategyTest {
 		final GetBucketAclResponse bucketAclResponse = GetBucketAclResponse.builder().build();
 
 		Mockito.lenient().when(s3Client.getBucketAcl(getBucketAclRequestArgumentCaptor.capture())).thenReturn(bucketAclResponse);
-		s3AclComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		s3AclComplianceStrategy.execute(s3Client, BUCKET_NAME, null, complianceReport);
 
 		assertTrue(complianceReport.isCompliant());
 
@@ -69,7 +69,7 @@ public class S3AclComplianceStrategyTest {
 		final GetBucketAclResponse bucketAclResponse = GetBucketAclResponse.builder().grants(grant).build();
 
 		Mockito.lenient().when(s3Client.getBucketAcl(getBucketAclRequestArgumentCaptor.capture())).thenReturn(bucketAclResponse);
-		s3AclComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		s3AclComplianceStrategy.execute(s3Client, BUCKET_NAME, null, complianceReport);
 
 		assertFalse(complianceReport.isCompliant());
 

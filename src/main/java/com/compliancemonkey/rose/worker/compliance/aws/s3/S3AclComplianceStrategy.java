@@ -8,6 +8,7 @@ import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.GetBucketAclRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketAclResponse;
 import software.amazon.awssdk.services.s3.model.Grant;
@@ -15,7 +16,7 @@ import software.amazon.awssdk.services.s3.model.Permission;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
-public class S3AclComplianceStrategy implements ComplianceStrategy  {
+public class S3AclComplianceStrategy implements ComplianceStrategy<Bucket>  {
 
 	private static final String GROUPS_USERS = "http://acs.amazonaws.com/groups/global/AllUsers";
 
@@ -30,7 +31,7 @@ public class S3AclComplianceStrategy implements ComplianceStrategy  {
 	}
 
 	@Override
-	public void execute(SdkClient sdkClient, String entityIdentifier, ComplianceReport complianceReport) {
+	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket bucket, ComplianceReport complianceReport) {
 		final S3Client s3Client = (S3Client) sdkClient;
 		final GetBucketAclRequest bucketAclRequest = GetBucketAclRequest.builder().bucket(entityIdentifier).build();
 		try {

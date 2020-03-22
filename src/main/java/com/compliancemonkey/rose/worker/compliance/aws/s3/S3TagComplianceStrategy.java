@@ -8,16 +8,17 @@ import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 
 @Component
-public class S3TagComplianceStrategy implements ComplianceStrategy {
+public class S3TagComplianceStrategy implements ComplianceStrategy<Bucket> {
 
 	@Override
-	public void execute(SdkClient sdkClient, String entityIdentifier, ComplianceReport complianceReport) {
+	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket bucket, ComplianceReport complianceReport) {
 		final S3Client s3Client = (S3Client) sdkClient;
 		final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(entityIdentifier).build();
 		try {

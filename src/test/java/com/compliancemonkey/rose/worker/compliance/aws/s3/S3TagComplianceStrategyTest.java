@@ -55,7 +55,7 @@ public class S3TagComplianceStrategyTest {
 		final GetBucketTaggingResponse bucketTaggingResponse = GetBucketTaggingResponse.builder().tagSet(tag).build();
 		Mockito.lenient().when(s3Client.getBucketTagging(getBucketTaggingRequestArgumentCaptor.capture())).thenReturn(bucketTaggingResponse);
 
-		s3TagComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		s3TagComplianceStrategy.execute(s3Client, BUCKET_NAME, null, complianceReport);
 		assertTrue(complianceReport.isCompliant());
 
 		final GetBucketTaggingRequest bucketTaggingRequest = getBucketTaggingRequestArgumentCaptor.getValue();
@@ -68,7 +68,7 @@ public class S3TagComplianceStrategyTest {
 		final GetBucketTaggingResponse bucketTaggingResponse = GetBucketTaggingResponse.builder().tagSet(tag).build();
 		Mockito.lenient().when(s3Client.getBucketTagging(getBucketTaggingRequestArgumentCaptor.capture())).thenReturn(bucketTaggingResponse);
 
-		s3TagComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		s3TagComplianceStrategy.execute(s3Client, BUCKET_NAME, null, complianceReport);
 		assertFalse(complianceReport.isCompliant());
 
 		final GetBucketTaggingRequest bucketTaggingRequest = getBucketTaggingRequestArgumentCaptor.getValue();
