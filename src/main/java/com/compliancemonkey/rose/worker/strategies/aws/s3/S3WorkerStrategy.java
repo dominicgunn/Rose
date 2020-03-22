@@ -6,6 +6,8 @@ import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
+import com.compliancemonkey.rose.audit.models.AuditComplianceReport;
+import com.compliancemonkey.rose.audit.models.AuditReport;
 import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
 import com.compliancemonkey.rose.worker.strategies.ServiceWorkerStrategy;
 import com.compliancemonkey.rose.worker.AwsService;
@@ -44,24 +46,13 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 		eventPublisher.publishEvent(new AuditUpdateEvent(audit.getAuditId(), Status.IN_PROGRESS));
 
 		final S3Client s3Client = awsService.buildS3Client(awsCredentialsProvider);
-
-		final List<String> bucketsInCompliance = new ArrayList<>();
-		final List<String> bucketsOutOfCompliance = new ArrayList<>();
+		final List<AuditComplianceReport> complianceReports = new ArrayList<>();
 
 		try {
 			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
 			listBucketsResponse.buckets().forEach(x -> {
-				boolean isCompliant = true;
 				for (ComplianceStrategy complianceStrategy : complianceStrategies) {
-					if (!complianceStrategy.isCompliant(s3Client, x.name())) {
-						isCompliant = false;
-					}
-				}
-
-				if (isCompliant) {
-					bucketsInCompliance.add(x.name());
-				} else {
-					bucketsOutOfCompliance.add(x.name());
+					complianceReports.add(complianceStrategy.verifyCompliance(s3Client, x.name()));
 				}
 			});
 		} catch (S3Exception ex) {
@@ -70,7 +61,7 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 			return;
 		}
 
-		eventPublisher.publishEvent(new AuditCompleteEvent(audit.getAuditId(), new S3AuditReport(bucketsInCompliance, bucketsOutOfCompliance)));
+		eventPublisher.publishEvent(new AuditCompleteEvent(audit.getAuditId(), new AuditReport(complianceReports)));
 	}
 
 	@Override

@@ -1,7 +1,5 @@
 package com.compliancemonkey.rose.audit.models;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 public class Audit {
 
 	public enum Status {
@@ -10,6 +8,10 @@ public class Audit {
 
 	public enum CloudService {
 		AWS_S3, AWS_EC2
+	}
+
+	public enum ComplianceStrategyIdentifier {
+		AWS_S3_TAGS, AWS_S3_ENCRYPTION
 	}
 
 	private final int auditId;

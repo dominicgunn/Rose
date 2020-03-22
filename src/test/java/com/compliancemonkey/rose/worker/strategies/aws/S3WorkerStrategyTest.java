@@ -1,14 +1,16 @@
 package com.compliancemonkey.rose.worker.strategies.aws;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.compliancemonkey.rose.account.AccountService;
 import com.compliancemonkey.rose.audit.events.AuditCompleteEvent;
 import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
+import com.compliancemonkey.rose.audit.models.Audit.ComplianceStrategyIdentifier;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
+import com.compliancemonkey.rose.audit.models.AuditComplianceReport;
 import com.compliancemonkey.rose.audit.models.AuditReport;
 import com.compliancemonkey.rose.worker.AwsService;
 import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
@@ -32,10 +34,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
-import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
-import software.amazon.awssdk.services.s3.model.GetBucketTaggingResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
-import software.amazon.awssdk.services.s3.model.Tag;
 
 @RunWith(MockitoJUnitRunner.class)
 public class S3WorkerStrategyTest {
@@ -86,7 +85,8 @@ public class S3WorkerStrategyTest {
 		Mockito.lenient().when(s3Client.listBuckets()).thenReturn(listBucketsResponse);
 
 		final S3TagComplianceStrategy s3TagComplianceStrategy = Mockito.mock(S3TagComplianceStrategy.class);
-		Mockito.when(s3TagComplianceStrategy.isCompliant(s3Client, BUCKET_NAME)).thenReturn(true);
+		final AuditComplianceReport complianceReport = new AuditComplianceReport(BUCKET_NAME, ComplianceStrategyIdentifier.AWS_S3_TAGS, true);
+		Mockito.when(s3TagComplianceStrategy.verifyCompliance(s3Client, BUCKET_NAME)).thenReturn(complianceReport);
 
 		complianceStrategyList = Collections.singletonList(s3TagComplianceStrategy);
 	}
@@ -104,7 +104,8 @@ public class S3WorkerStrategyTest {
 	@Test
 	public void testStrategyIdentifiesBucketsNotInCompliance() {
 		final S3TagComplianceStrategy s3TagComplianceStrategy = Mockito.mock(S3TagComplianceStrategy.class);
-		Mockito.when(s3TagComplianceStrategy.isCompliant(s3Client, BUCKET_NAME)).thenReturn(false);
+		final AuditComplianceReport complianceReport = new AuditComplianceReport(BUCKET_NAME, ComplianceStrategyIdentifier.AWS_S3_TAGS, false);
+		Mockito.when(s3TagComplianceStrategy.verifyCompliance(s3Client, BUCKET_NAME)).thenReturn(complianceReport);
 		complianceStrategyList = Collections.singletonList(s3TagComplianceStrategy);
 
 		s3WorkerStrategy.execute(audit, complianceStrategyList);
@@ -116,7 +117,7 @@ public class S3WorkerStrategyTest {
 		final AuditCompleteEvent auditCompleteEvent = (AuditCompleteEvent) auditUpdateEventArgumentCaptor.getAllValues().get(1);
 		final AuditReport auditReport = auditCompleteEvent.getAuditReport();
 
-		assertThat(auditReport.getObjectIdsOutOfCompliance(), contains(BUCKET_NAME));
+		assertFalse(auditReport.getComplianceReports().get(0).isCompliant());
 	}
 
 	@Test
@@ -130,6 +131,6 @@ public class S3WorkerStrategyTest {
 		final AuditCompleteEvent auditCompleteEvent = (AuditCompleteEvent) auditUpdateEventArgumentCaptor.getAllValues().get(1);
 		final AuditReport auditReport = auditCompleteEvent.getAuditReport();
 
-		assertThat(auditReport.getObjectIdsInCompliance(), contains(BUCKET_NAME));
+		assertTrue(auditReport.getComplianceReports().get(0).isCompliant());
 	}
 }

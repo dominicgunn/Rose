@@ -4,19 +4,38 @@ import java.util.List;
 
 public class AuditReport {
 
-	private List<String> objectIdsInCompliance;
-	private List<String> objectIdsOutOfCompliance;
+	private int entities;
+	private int entitiesInCompliance;
+	private List<AuditComplianceReport> complianceReports;
 
-	public AuditReport(List<String> objectIdsInCompliance, List<String> objectIdsOutOfCompliance) {
-		this.objectIdsInCompliance = objectIdsInCompliance;
-		this.objectIdsOutOfCompliance = objectIdsOutOfCompliance;
+	public AuditReport(List<AuditComplianceReport> complianceReports) {
+		this.complianceReports = complianceReports;
+
+		entities = complianceReports.size();
+		for (AuditComplianceReport complianceReport : complianceReports) {
+			if (complianceReport.isCompliant()) {
+				entitiesInCompliance++;
+			}
+		}
 	}
 
-	public List<String> getObjectIdsInCompliance() {
-		return objectIdsInCompliance;
+	public int getEntities() {
+		return entities;
 	}
 
-	public List<String> getObjectIdsOutOfCompliance() {
-		return objectIdsOutOfCompliance;
+	public int getEntitiesInCompliance() {
+		return entitiesInCompliance;
+	}
+
+	public int getEntitiesOutOfCompliance() {
+		return (entities - entitiesInCompliance);
+	}
+
+	public String getEntityPercentageInCompliance() {
+		return String.format("%.2f", (((float) entitiesInCompliance) / ((float) entities) * 100));
+	}
+
+	public List<AuditComplianceReport> getComplianceReports() {
+		return complianceReports;
 	}
 }

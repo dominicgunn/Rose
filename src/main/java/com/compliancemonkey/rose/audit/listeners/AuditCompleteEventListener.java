@@ -2,7 +2,6 @@ package com.compliancemonkey.rose.audit.listeners;
 
 import com.compliancemonkey.rose.audit.AuditService;
 import com.compliancemonkey.rose.audit.events.AuditCompleteEvent;
-import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
 import org.springframework.beans.factory.annotation.Autowired;
