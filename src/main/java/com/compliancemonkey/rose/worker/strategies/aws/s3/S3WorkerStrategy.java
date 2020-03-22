@@ -6,7 +6,7 @@ import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
-import com.compliancemonkey.rose.audit.models.AuditComplianceReport;
+import com.compliancemonkey.rose.audit.models.ComplianceReport;
 import com.compliancemonkey.rose.audit.models.AuditReport;
 import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
 import com.compliancemonkey.rose.worker.strategies.ServiceWorkerStrategy;
@@ -46,14 +46,16 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 		eventPublisher.publishEvent(new AuditUpdateEvent(audit.getAuditId(), Status.IN_PROGRESS));
 
 		final S3Client s3Client = awsService.buildS3Client(awsCredentialsProvider);
-		final List<AuditComplianceReport> complianceReports = new ArrayList<>();
+		final List<ComplianceReport> complianceReports = new ArrayList<>();
 
 		try {
 			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
 			listBucketsResponse.buckets().forEach(x -> {
+				final ComplianceReport complianceReport = new ComplianceReport(x.name());
 				for (ComplianceStrategy complianceStrategy : complianceStrategies) {
-					complianceReports.add(complianceStrategy.verifyCompliance(s3Client, x.name()));
+					complianceStrategy.execute(s3Client, x.name(), complianceReport);
 				}
+				complianceReports.add(complianceReport);
 			});
 		} catch (S3Exception ex) {
 			// AWS Credentials Invalid

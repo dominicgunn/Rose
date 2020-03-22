@@ -2,7 +2,8 @@ package com.compliancemonkey.rose.worker.compliance.aws.s3;
 
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.ComplianceStrategyIdentifier;
-import com.compliancemonkey.rose.audit.models.AuditComplianceReport;
+import com.compliancemonkey.rose.audit.models.ComplianceReport;
+import com.compliancemonkey.rose.audit.models.StrategyReport;
 import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkClient;
@@ -16,19 +17,20 @@ import software.amazon.awssdk.services.s3.model.Tag;
 public class S3TagComplianceStrategy implements ComplianceStrategy {
 
 	@Override
-	public AuditComplianceReport verifyCompliance(SdkClient sdkClient, String entityIdentifier) {
+	public void execute(SdkClient sdkClient, String entityIdentifier, ComplianceReport complianceReport) {
 		final S3Client s3Client = (S3Client) sdkClient;
 		final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(entityIdentifier).build();
 		try {
 			final GetBucketTaggingResponse bucketTaggingResponse = s3Client.getBucketTagging(bucketTaggingRequest);
 			for (Tag tag : bucketTaggingResponse.tagSet()) {
 				if ("Team".equalsIgnoreCase(tag.key())) {
-					return new AuditComplianceReport(entityIdentifier, complianceIdentifier(), true);
+					complianceReport.addStrategyReport(new StrategyReport(true, complianceIdentifier()));
+					return;
 				}
 			}
-			return new AuditComplianceReport(entityIdentifier, complianceIdentifier(), false);
+			complianceReport.addStrategyReport(new StrategyReport(false, complianceIdentifier()));
 		} catch (S3Exception s3exception) {
-			return new AuditComplianceReport(entityIdentifier, complianceIdentifier(), false);
+			complianceReport.addStrategyReport(new StrategyReport(false, complianceIdentifier()));
 		}
 	}
 

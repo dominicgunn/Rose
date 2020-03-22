@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
+import com.compliancemonkey.rose.audit.models.ComplianceReport;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +37,13 @@ public class S3TagComplianceStrategyTest {
 	@Captor
 	private ArgumentCaptor<GetBucketTaggingRequest> getBucketTaggingRequestArgumentCaptor;
 
+	private ComplianceReport complianceReport;
+
+	@Before
+	public void setUp() {
+		complianceReport = new ComplianceReport(BUCKET_NAME);
+	}
+
 	@Test
 	public void testS3ServiceSupport() {
 		assertTrue(s3TagComplianceStrategy.supportsService(CloudService.AWS_S3));
@@ -46,7 +55,8 @@ public class S3TagComplianceStrategyTest {
 		final GetBucketTaggingResponse bucketTaggingResponse = GetBucketTaggingResponse.builder().tagSet(tag).build();
 		Mockito.lenient().when(s3Client.getBucketTagging(getBucketTaggingRequestArgumentCaptor.capture())).thenReturn(bucketTaggingResponse);
 
-		assertTrue(s3TagComplianceStrategy.verifyCompliance(s3Client, BUCKET_NAME).isCompliant());
+		s3TagComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		assertTrue(complianceReport.isCompliant());
 
 		final GetBucketTaggingRequest bucketTaggingRequest = getBucketTaggingRequestArgumentCaptor.getValue();
 		assertEquals(bucketTaggingRequest.bucket(), BUCKET_NAME);
@@ -58,7 +68,8 @@ public class S3TagComplianceStrategyTest {
 		final GetBucketTaggingResponse bucketTaggingResponse = GetBucketTaggingResponse.builder().tagSet(tag).build();
 		Mockito.lenient().when(s3Client.getBucketTagging(getBucketTaggingRequestArgumentCaptor.capture())).thenReturn(bucketTaggingResponse);
 
-		assertFalse(s3TagComplianceStrategy.verifyCompliance(s3Client, BUCKET_NAME).isCompliant());
+		s3TagComplianceStrategy.execute(s3Client, BUCKET_NAME, complianceReport);
+		assertFalse(complianceReport.isCompliant());
 
 		final GetBucketTaggingRequest bucketTaggingRequest = getBucketTaggingRequestArgumentCaptor.getValue();
 		assertEquals(bucketTaggingRequest.bucket(), BUCKET_NAME);

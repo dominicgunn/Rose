@@ -6,13 +6,13 @@ public class AuditReport {
 
 	private int entities;
 	private int entitiesInCompliance;
-	private List<AuditComplianceReport> complianceReports;
+	private List<ComplianceReport> complianceReports;
 
-	public AuditReport(List<AuditComplianceReport> complianceReports) {
+	public AuditReport(List<ComplianceReport> complianceReports) {
 		this.complianceReports = complianceReports;
 
 		entities = complianceReports.size();
-		for (AuditComplianceReport complianceReport : complianceReports) {
+		for (ComplianceReport complianceReport : complianceReports) {
 			if (complianceReport.isCompliant()) {
 				entitiesInCompliance++;
 			}
@@ -35,7 +35,7 @@ public class AuditReport {
 		return String.format("%.2f", (((float) entitiesInCompliance) / ((float) entities) * 100));
 	}
 
-	public List<AuditComplianceReport> getComplianceReports() {
+	public List<ComplianceReport> getComplianceReports() {
 		return complianceReports;
 	}
 }
