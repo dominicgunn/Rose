@@ -6,8 +6,9 @@ import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
-import com.compliancemonkey.rose.worker.ServiceWorkerStrategy;
-import com.compliancemonkey.rose.worker.strategies.aws.AwsService;
+import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
+import com.compliancemonkey.rose.worker.strategies.ServiceWorkerStrategy;
+import com.compliancemonkey.rose.worker.AwsService;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +16,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
-import software.amazon.awssdk.services.s3.model.GetBucketTaggingResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.model.Tag;
 
 @Component
 public class S3WorkerStrategy implements ServiceWorkerStrategy {
@@ -36,7 +34,7 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 	}
 
 	@Override
-	public void execute(Audit audit) {
+	public void execute(Audit audit, List<ComplianceStrategy> complianceStrategies) {
 		final StaticCredentialsProvider awsCredentialsProvider = accountService.getAwsCredentialsProvider(audit.getAccountId());
 		if (awsCredentialsProvider == null) {
 			eventPublisher.publishEvent(new AuditUpdateEvent(audit.getAuditId(), Status.FAILED));
@@ -53,24 +51,16 @@ public class S3WorkerStrategy implements ServiceWorkerStrategy {
 		try {
 			final ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
 			listBucketsResponse.buckets().forEach(x -> {
-				final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(x.name()).build();
-				try {
-					final GetBucketTaggingResponse bucketTaggingResponse = s3Client.getBucketTagging(bucketTaggingRequest);
-
-					boolean inCompliance = false;
-					for (Tag tag : bucketTaggingResponse.tagSet()) {
-						if ("Team".equalsIgnoreCase(tag.key())) {
-							inCompliance = true;
-							break;
-						}
+				boolean isCompliant = true;
+				for (ComplianceStrategy complianceStrategy : complianceStrategies) {
+					if (!complianceStrategy.isCompliant(s3Client, x.name())) {
+						isCompliant = false;
 					}
+				}
 
-					if (inCompliance) {
-						bucketsInCompliance.add(x.name());
-					} else {
-						bucketsOutOfCompliance.add(x.name());
-					}
-				} catch (S3Exception s3exception) {
+				if (isCompliant) {
+					bucketsInCompliance.add(x.name());
+				} else {
 					bucketsOutOfCompliance.add(x.name());
 				}
 			});

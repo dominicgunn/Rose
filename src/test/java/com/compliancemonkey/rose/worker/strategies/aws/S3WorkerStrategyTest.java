@@ -4,14 +4,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 
 import com.compliancemonkey.rose.account.AccountService;
-import com.compliancemonkey.rose.audit.AuditService;
 import com.compliancemonkey.rose.audit.events.AuditCompleteEvent;
 import com.compliancemonkey.rose.audit.events.AuditUpdateEvent;
 import com.compliancemonkey.rose.audit.models.Audit;
 import com.compliancemonkey.rose.audit.models.Audit.CloudService;
 import com.compliancemonkey.rose.audit.models.Audit.Status;
 import com.compliancemonkey.rose.audit.models.AuditReport;
+import com.compliancemonkey.rose.worker.AwsService;
+import com.compliancemonkey.rose.worker.compliance.ComplianceStrategy;
+import com.compliancemonkey.rose.worker.compliance.aws.s3.S3TagComplianceStrategy;
 import com.compliancemonkey.rose.worker.strategies.aws.s3.S3WorkerStrategy;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -48,9 +52,6 @@ public class S3WorkerStrategyTest {
 	private AwsService awsService;
 
 	@Mock
-	private AuditService auditService;
-
-	@Mock
 	private AccountService accountService;
 
 	@Mock
@@ -59,49 +60,41 @@ public class S3WorkerStrategyTest {
 	@Captor
 	private ArgumentCaptor<ApplicationEvent> auditUpdateEventArgumentCaptor;
 
-	@Captor
-	private ArgumentCaptor<GetBucketTaggingRequest> getBucketTaggingRequestArgumentCaptor;
 
 	@InjectMocks
 	private S3WorkerStrategy s3WorkerStrategy;
 
-	private Tag tag;
+	private Audit audit;
+	private List<ComplianceStrategy> complianceStrategyList;
+
 	private Bucket bucket;
 	private S3Client s3Client;
 	private StaticCredentialsProvider credentialsProvider;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
+		audit = new Audit(AUDIT_ID, ACCOUNT_ID, CLOUD_SERVICE);
+
 		s3Client = Mockito.mock(S3Client.class);
-		tag = Tag.builder().key(COMPLIANCE_TAG).build();
 		bucket = Bucket.builder().name(BUCKET_NAME).build();
 		credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKeyId", "secretAccessKey"));
 
-		Mockito.lenient().when(auditService.getAudit(AUDIT_ID)).thenReturn(new Audit(AUDIT_ID, ACCOUNT_ID, CLOUD_SERVICE));
 		Mockito.lenient().when(accountService.getAwsCredentialsProvider(ACCOUNT_ID)).thenReturn(credentialsProvider);
 		Mockito.lenient().when(awsService.buildS3Client(credentialsProvider)).thenReturn(s3Client);
 
 		final ListBucketsResponse listBucketsResponse = ListBucketsResponse.builder().buckets(bucket).build();
 		Mockito.lenient().when(s3Client.listBuckets()).thenReturn(listBucketsResponse);
 
-		final GetBucketTaggingResponse bucketTaggingResponse = GetBucketTaggingResponse.builder().tagSet(tag).build();
-		Mockito.lenient().when(s3Client.getBucketTagging(getBucketTaggingRequestArgumentCaptor.capture())).thenReturn(bucketTaggingResponse);
-	}
+		final S3TagComplianceStrategy s3TagComplianceStrategy = Mockito.mock(S3TagComplianceStrategy.class);
+		Mockito.when(s3TagComplianceStrategy.isCompliant(s3Client, BUCKET_NAME)).thenReturn(true);
 
-	@Test
-	public void testStrategyFailsIfAuditMissing() {
-		Mockito.when(auditService.getAudit(AUDIT_ID)).thenReturn(null);
-		s3WorkerStrategy.execute(AUDIT_ID);
-
-		Mockito.verify(eventPublisher, Mockito.atLeastOnce()).publishEvent(auditUpdateEventArgumentCaptor.capture());
-		final AuditUpdateEvent auditUpdateEvent = (AuditUpdateEvent) auditUpdateEventArgumentCaptor.getValue();
-		Assertions.assertEquals(auditUpdateEvent.getAuditStatus(), Status.FAILED);
+		complianceStrategyList = Collections.singletonList(s3TagComplianceStrategy);
 	}
 
 	@Test
 	public void testStrategyIfAWSCredentialsMissing() {
 		Mockito.when(accountService.getAwsCredentialsProvider(ACCOUNT_ID)).thenReturn(null);
-		s3WorkerStrategy.execute(AUDIT_ID);
+		s3WorkerStrategy.execute(audit, complianceStrategyList);
 
 		Mockito.verify(eventPublisher, Mockito.only()).publishEvent(auditUpdateEventArgumentCaptor.capture());
 		final AuditUpdateEvent auditUpdateEvent = (AuditUpdateEvent) auditUpdateEventArgumentCaptor.getValue();
@@ -110,13 +103,11 @@ public class S3WorkerStrategyTest {
 
 	@Test
 	public void testStrategyIdentifiesBucketsNotInCompliance() {
-		final String outOfComplianceTagName = String.format("%s-OutOfCompliance", COMPLIANCE_TAG);
+		final S3TagComplianceStrategy s3TagComplianceStrategy = Mockito.mock(S3TagComplianceStrategy.class);
+		Mockito.when(s3TagComplianceStrategy.isCompliant(s3Client, BUCKET_NAME)).thenReturn(false);
+		complianceStrategyList = Collections.singletonList(s3TagComplianceStrategy);
 
-		tag = Tag.builder().key(outOfComplianceTagName).build();
-		final GetBucketTaggingResponse bucketTaggingResponse = GetBucketTaggingResponse.builder().tagSet(tag).build();
-		Mockito.lenient().when(s3Client.getBucketTagging(getBucketTaggingRequestArgumentCaptor.capture())).thenReturn(bucketTaggingResponse);
-
-		s3WorkerStrategy.execute(AUDIT_ID);
+		s3WorkerStrategy.execute(audit, complianceStrategyList);
 
 		Mockito.verify(eventPublisher, Mockito.times(2)).publishEvent(auditUpdateEventArgumentCaptor.capture());
 		final AuditUpdateEvent auditUpdateEvent = (AuditUpdateEvent) auditUpdateEventArgumentCaptor.getAllValues().get(0);
@@ -130,7 +121,7 @@ public class S3WorkerStrategyTest {
 
 	@Test
 	public void testStrategyIdentifiesBucketsInCompliance() {
-		s3WorkerStrategy.execute(AUDIT_ID);
+		s3WorkerStrategy.execute(audit, complianceStrategyList);
 
 		Mockito.verify(eventPublisher, Mockito.times(2)).publishEvent(auditUpdateEventArgumentCaptor.capture());
 		final AuditUpdateEvent auditUpdateEvent = (AuditUpdateEvent) auditUpdateEventArgumentCaptor.getAllValues().get(0);
