@@ -18,7 +18,7 @@ import software.amazon.awssdk.services.s3.model.Tag;
 public class S3TagComplianceStrategy implements ComplianceStrategy<Bucket> {
 
 	@Override
-	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket bucket, ComplianceReport complianceReport) {
+	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket entity, ComplianceReport complianceReport) {
 		final S3Client s3Client = (S3Client) sdkClient;
 		final GetBucketTaggingRequest bucketTaggingRequest = GetBucketTaggingRequest.builder().bucket(entityIdentifier).build();
 		try {

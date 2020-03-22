@@ -31,7 +31,7 @@ public class S3AclComplianceStrategy implements ComplianceStrategy<Bucket>  {
 	}
 
 	@Override
-	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket bucket, ComplianceReport complianceReport) {
+	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket entity, ComplianceReport complianceReport) {
 		final S3Client s3Client = (S3Client) sdkClient;
 		final GetBucketAclRequest bucketAclRequest = GetBucketAclRequest.builder().bucket(entityIdentifier).build();
 		try {

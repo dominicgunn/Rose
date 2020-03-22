@@ -9,5 +9,5 @@ public interface ComplianceStrategy<T> {
 
 	boolean supportsService(CloudService cloudService);
 	ComplianceStrategyIdentifier complianceIdentifier();
-	void execute(SdkClient sdkClient, String entityIdentifier, T Entity, ComplianceReport complianceReport);
+	void execute(SdkClient sdkClient, String entityIdentifier, T entity, ComplianceReport complianceReport);
 }

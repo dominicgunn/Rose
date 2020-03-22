@@ -27,7 +27,7 @@ public class S3EncryptionComplianceStrategy implements ComplianceStrategy<Bucket
 	}
 
 	@Override
-	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket bucket, ComplianceReport complianceReport) {
+	public void execute(SdkClient sdkClient, String entityIdentifier, Bucket entity, ComplianceReport complianceReport) {
 		final S3Client s3Client = (S3Client) sdkClient;
 		final GetBucketEncryptionRequest bucketEncryptionRequest = GetBucketEncryptionRequest.builder().bucket(entityIdentifier).build();
 		try {
